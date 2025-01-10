@@ -2,6 +2,10 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from dotenv import load_dotenv  # Importamos dotenv para cargar variables locales
+
+# Carga las variables del archivo .env (solo si existe, para entorno local)
+load_dotenv()
 
 app = FastAPI()
 
@@ -17,8 +21,8 @@ app.add_middleware(
 @app.get("/")
 async def root():
     # Acceder a las variables de entorno HELLO y HOLA
-    hello = os.getenv("HELLO", "default_hello_value")  # Valor predeterminado por si no está configurado
-    hola = os.getenv("HOLA", "default_hola_value")    # Valor predeterminado por si no está configurado
+    hello = os.getenv("HELLO", "default_hello_value")  # Valor predeterminado si no está configurado
+    hola = os.getenv("HOLA", "default_hola_value")    # Valor predeterminado si no está configurado
 
     # Obtener la fecha actual en formato ISO 8601: YYYY-MM-DD
     fecha_iso = datetime.now().strftime("%Y-%m-%d")
@@ -34,3 +38,10 @@ async def root():
 @app.get("/holamundo")
 async def hola_mundo():
     return {"message": "¡Hola, Mundo we!"}
+
+# Depuración (solo para desarrollo)
+@app.get("/debug")
+async def debug_env():
+    # Imprime todas las variables de entorno disponibles (para depurar)
+    env_vars = dict(os.environ)
+    return {"environment_variables": env_vars}

@@ -7,9 +7,6 @@ from dotenv import load_dotenv  # Importamos dotenv para cargar variables locale
 # Carga las variables del archivo .env (solo si existe, para entorno local)
 load_dotenv()
 
-# Definir la versión de la API
-API_VERSION = "v1"
-
 app = FastAPI()
 
 # Configuración del CORS
@@ -31,7 +28,6 @@ async def root():
     fecha_iso = datetime.now().strftime("%Y-%m-%d")
     
     return {
-        "version": API_VERSION,  # Devuelve la versión de la API
         "greeting": "Hello, World!",
         "message": "¡Bienvenido a la API de solo lectura!",
         "date": fecha_iso,
@@ -41,17 +37,11 @@ async def root():
 
 @app.get("/holamundo")
 async def hola_mundo():
-    return {
-        "version": API_VERSION,  # Devuelve la versión de la API
-        "message": "¡Hola, Mundo we!"
-    }
+    return {"message": "¡Hola, Mundo we!"}
 
 # Depuración (solo para desarrollo)
 @app.get("/debug")
 async def debug_env():
     # Imprime todas las variables de entorno disponibles (para depurar)
     env_vars = dict(os.environ)
-    return {
-        "version": API_VERSION,  # Devuelve la versión de la API
-        "environment_variables": env_vars
-    }
+    return {"environment_variables": env_vars}

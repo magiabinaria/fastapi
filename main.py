@@ -23,3 +23,7 @@ async def root():
         "message": "¡Bienvenido a la API de solo lectura!",
         "date": fecha_iso  # Fecha en formato internacional
     }
+
+@app.get("/holamundo")
+async def hola_mundo():
+    return {"message": "¡Hola Mundo!"}

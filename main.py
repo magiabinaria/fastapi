@@ -80,13 +80,13 @@ async def redis_list():
             return {
                 "status": "success",
                 "registros": {},
-                "message": "No hay keys en Redis"
+                "message": "No hay registros en Redis"
             }
         
-        # Obtener valores en batch (asumiendo strings; si hay otros tipos, ajusta)
+        # Obtener valores en batch (mget retorna lista en orden de keys)
         values = await r.mget(keys)
-        # Decodificar keys y values
-        registros = {key.decode("utf-8"): (value.decode("utf-8") if value else None) for key, value in values.items()}
+        # Mapear keys a values (decodificando)
+        registros = {k.decode("utf-8"): v.decode("utf-8") if v else None for k, v in zip(keys, values)}
         
         return {
             "status": "success",

@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+import redis.asyncio as redis  # Async Redis client
 
 # Intenta cargar dotenv solo si está disponible (para desarrollo local)
 try:
@@ -20,6 +21,10 @@ app.add_middleware(
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Conexión async a Redis (usando REDIS_URL de Railway)
+async def get_redis():
+    return await redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
 
 @app.get("/")
 async def root():
@@ -41,6 +46,28 @@ async def root():
 @app.get("/holamundo")
 async def hola_mundo():
     return {"message": "¡Hola, Mundo we!"}
+
+# Nuevo endpoint para probar Redis
+@app.get("/redis")
+async def test_redis():
+    r = await get_redis()
+    try:
+        # Set y get simple para probar
+        await r.set("test_key", "test_value")
+        value = await r.get("test_key")
+        await r.delete("test_key")  # Limpia después del test
+        return {
+            "status": "success",
+            "redis_value": value.decode("utf-8") if value else None,
+            "message": "Redis connection tested successfully!"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to connect to Redis: {str(e)}"
+        }
+    finally:
+        await r.aclose()  # Cierra la conexión async
 
 # Endpoint de debug: coméntalo o remuévelo en producción para seguridad
 # @app.get("/debug")

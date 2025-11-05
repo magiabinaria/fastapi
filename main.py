@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import redis.asyncio as redis  # Async Redis client
@@ -47,7 +47,7 @@ async def root():
 async def hola_mundo():
     return {"message": "¡Hola, Mundo we!"}
 
-# Nuevo endpoint para probar Redis
+# Endpoint para probar Redis
 @app.get("/redis")
 async def test_redis():
     r = await get_redis()
@@ -68,6 +68,48 @@ async def test_redis():
         }
     finally:
         await r.aclose()  # Cierra la conexión async
+
+# Nuevo endpoint: /redislist para obtener los últimos 10 registros (asumiendo una lista en Redis llamada 'registros')
+@app.get("/redislist")
+async def redis_list():
+    r = await get_redis()
+    try:
+        # Obtener los últimos 10 elementos de la lista 'registros' (si no existe, retorna vacío)
+        registros = await r.lrange("registros", -10, -1)
+        # Decodificar los valores (asumiendo strings)
+        registros_decoded = [reg.decode("utf-8") for reg in registros]
+        return {
+            "status": "success",
+            "ultimos_10_registros": registros_decoded,
+            "message": "Últimos 10 registros obtenidos (si existen)"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error al obtener registros: {str(e)}"
+        }
+    finally:
+        await r.aclose()
+
+# Nuevo endpoint: /redisid?id=<key> para obtener el valor de una key específica
+@app.get("/redisid")
+async def redis_id(id: str = Query(..., description="La key de Redis a consultar")):
+    r = await get_redis()
+    try:
+        value = await r.get(id)
+        return {
+            "status": "success",
+            "key": id,
+            "value": value.decode("utf-8") if value else None,
+            "message": "Valor obtenido (si existe)"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error al obtener valor: {str(e)}"
+        }
+    finally:
+        await r.aclose()
 
 # Endpoint de debug: coméntalo o remuévelo en producción para seguridad
 # @app.get("/debug")

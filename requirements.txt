@@ -1,3 +1,4 @@
 fastapi
 hypercorn
 python-dotenv
+redis
